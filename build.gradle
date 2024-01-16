@@ -1,0 +1,87 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.2.1'
+    id 'io.spring.dependency-management' version '1.1.4'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    sourceCompatibility = '17'
+}
+
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+configurations.all {
+    resolutionStrategy {
+        force 'com.fasterxml.jackson.core:jackson-databind:2.16.1'
+        force 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.16.1'
+        force 'com.fasterxml.jackson.core:jackson-core:2.16.1'
+        force 'com.fasterxml.jackson.core:jackson-annotations:2.16.1'
+        force 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.16.1'
+        force 'com.fasterxml.jackson.module:jackson-module-parameter-names:2.16.1'
+    }
+}
+
+dependencies {
+    implementation "io.github.stefanbratanov:jvm-openai:0.5.0"
+    implementation 'org.springframework.boot:spring-boot-starter-pulsar'
+    implementation 'org.springframework.pulsar:spring-pulsar'
+
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.1'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.16.1'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.16.1'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.16.1'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.16.1'
+    implementation 'com.fasterxml.jackson.module:jackson-module-parameter-names:2.16.1'
+
+    implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation 'org.apache.avro:avro:1.11.3'
+    implementation 'org.apache.avro:avro-tools:1.11.3'
+
+    compileOnly 'org.projectlombok:lombok'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+bootRun {
+    jvmArgs = [
+            "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+            "--add-opens", "java.base/java.util=ALL-UNNAMED",
+            "--add-opens", "java.base/sun.net=ALL-UNNAMED"
+    ]
+}
+
+jar {
+    archiveBaseName.set('DemoApplication')
+    archiveVersion.set('0.1.0')
+    manifest {
+        attributes(
+                'Main-Class': 'com.example.demo.DemoApplication'
+        )
+    }
+}
+
+
+// Registering a task to copy dependencies
+tasks.register('copyDependencies', Copy) {
+    into "$buildDir/libs/dependencies"
+    from configurations.runtimeClasspath
+}
+
