@@ -29,6 +29,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Collections;
 
@@ -37,14 +40,14 @@ public class Dalle {
 
     OpenAI openAI = OpenAI.newBuilder(apiToken).build();
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
         Dalle dalle = new Dalle();
-        String path = dalle.generateImage("I love to test different things and expoore life");
-        dalle.uploadImage2(path, "42037c35-262c-4bf6-88bc-2d3d3a0ad524");
+        String path = dalle.generateImage("I love to test different things and expoore life","42037c35-262c-4bf6-88bc-2d3d3a0ad524" );
+        dalle.uploadImage2(path, "24bcfe7d-f699-40f4-b616-e729e49dc651");
     }
 
     //Returns image path
-    public String generateImage(String transcription) {
+    public String generateImage(String transcription, String imageId) {
         ImagesClient imagesClient = openAI.imagesClient();
         CreateImageRequest createImageRequest = CreateImageRequest.newBuilder()
                 .model("dall-e-3")
@@ -52,13 +55,13 @@ public class Dalle {
                 .responseFormat("b64_json")
                 .prompt("Here is a conversation between two people. Generate an image that represents the idea behind this conversation. " +
                         "DO NOT INCLUDE any faces. Message starts after this prompt: " +
-                        "Generate and otter image that is funny")
+                        transcription)
                 .build();
         Images images = imagesClient.createImage(createImageRequest);
         byte[] encodedImageBytes = images.data().get(0).b64Json().getBytes();
         byte[] decodedImageBytes = Base64.getDecoder().decode(encodedImageBytes);
 
-        String path = "downloadedImage.png";
+        String path = "./data/images/image-" + imageId + ".png";
         // Write to file
         try (FileOutputStream imageOutFile = new FileOutputStream(path)) { // Adjust file extension based on image format
             imageOutFile.write(decodedImageBytes);
@@ -66,7 +69,7 @@ public class Dalle {
             e.printStackTrace();
         }
         // Images[created=1704009569, data=[Image[b64Json=null, url=https://foo.bar/cute-baby-sea-otter.png, revisedPrompt=Generate an image of a baby sea otter, exuding cuteness. The small, furry creature should be floating blissfully on its back in clear, calm waters, its round button eyes are brimming with innocence and curiosity.]]]
-        System.out.println(images);
+        //System.out.println(images);
         return path;
     }
 
@@ -105,11 +108,11 @@ public class Dalle {
         }
     }
 
-    public void uploadImage2(String path, String imageId) {
-        RestTemplate restTemplate = new RestTemplate();
+    public void uploadImage2(String path, String imageId) throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
+        RestTemplate restTemplate = AudioMessageService.getRestTemplate();
         restTemplate.setInterceptors(Collections.singletonList(new RequestResponseLoggingInterceptor()));
 
-        String url = "http://127.0.0.1:8000/api/ImageFile/{iamgeId}/";
+        String url = "https://babblebox-app.shivamrastogi.com/api/ImageFile/{iamgeId}/";
         //String id = "68627b45-78cb-4053-8a9a-dfb505219aef"; // Set the resource ID here
 
         File file = new File(path);
@@ -121,6 +124,7 @@ public class Dalle {
             FileSystemResource fileResource = new FileSystemResource(file);
 
             HttpHeaders headers = new HttpHeaders();
+            headers.add("Authorization", "Token " + "380915803ba47517c0e0dc21add9c814f85e9dd4");
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
             // Body

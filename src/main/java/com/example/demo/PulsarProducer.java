@@ -3,6 +3,7 @@ package com.example.demo;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.springframework.pulsar.core.PulsarTemplate;
 import org.springframework.stereotype.Component;
+import org.apache.hc.core5.http.config.Lookup;
 
 @Component
 public class PulsarProducer {

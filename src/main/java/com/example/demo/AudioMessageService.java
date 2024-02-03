@@ -1,23 +1,83 @@
 package com.example.demo;
 
+
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
+import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
+import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.core5.http.config.Registry;
+import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.ssl.SSLContexts;
+import org.apache.hc.core5.ssl.TrustStrategy;
+import org.apache.pulsar.common.tls.NoopHostnameVerifier;
+import org.springframework.http.*;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.http.ResponseEntity;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
 public class AudioMessageService {
 
     private RestTemplate restTemplate;
-    String apiAudioUrl = "http://127.0.0.1:8000/api/AudioFile";
+    String apiAudioUrl = "https://babblebox-app.shivamrastogi.com/api/AudioFile";
 
-    public AudioMessageService() {
-        this.restTemplate = new RestTemplate();
+    public AudioMessageService() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
+        this.restTemplate = AudioMessageService.getRestTemplate();
+    }
+
+    public static RestTemplate getRestTemplate() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
+        try {
+            final TrustStrategy acceptingTrustStrategy = (cert, authType) -> true;
+            final SSLContext sslContext = SSLContexts.custom()
+                    .loadTrustMaterial(null, acceptingTrustStrategy)
+                    .build();
+            final SSLConnectionSocketFactory sslsf =
+                    new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
+            final Registry<ConnectionSocketFactory> socketFactoryRegistry =
+                    RegistryBuilder.<ConnectionSocketFactory>create()
+                            .register("https", sslsf)
+                            .register("http", new PlainConnectionSocketFactory())
+                            .build();
+
+            final BasicHttpClientConnectionManager connectionManager =
+                    new BasicHttpClientConnectionManager(socketFactoryRegistry);
+
+            CloseableHttpClient httpClient = HttpClients.custom()
+                    .setConnectionManager(connectionManager)
+                    .build();
+            HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+            requestFactory.setHttpClient(httpClient);
+            RestTemplate restTemplate = new RestTemplate(requestFactory);
+            return restTemplate;
+        } catch(Exception e) {
+
+        }
+        return new RestTemplate();
     }
 
     // Function to get the audio message ID
     public String getAudioMessageTranscription(String audioMessageId) {
         String url = apiAudioUrl + "/" + audioMessageId + "/";
 
-        ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+        // Create headers and add the authentication token
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Token " + "380915803ba47517c0e0dc21add9c814f85e9dd4");  // Assuming 'Token' as the token prefix
+        HttpEntity entity = new HttpEntity("body", headers);
+
+
+        ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.GET, entity, Map.class);
+
         if (response.getStatusCode().is2xxSuccessful()) {
             Map<String, Object> data = response.getBody();
             System.out.println(data);
@@ -58,9 +118,10 @@ public class AudioMessageService {
 //            System.out.println(e.getMessage());
 //        }
 //    }
-    public static void main(String[] args) {
-        AudioMessageService service = new AudioMessageService();
-        String transcription = service.getAudioMessageTranscription("ae89dd51-b683-48b7-aa2d-6bac9e768c97");
-        System.out.println(transcription);
-    }
+//    public static void main(String[] args) throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
+//        RestClientConfig.ignoreCertificates();
+//        AudioMessageService service = new AudioMessageService();
+//        String transcription = service.getAudioMessageTranscription("8898f450-c34f-4507-bf87-e195b4362787");
+//        System.out.println(transcription);
+//    }
 }
