@@ -1,13 +1,9 @@
 package com.example.demo;
 
-import org.apache.pulsar.client.api.PulsarClientException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLSession;
 
 @SpringBootApplication
 public class DemoApplication {

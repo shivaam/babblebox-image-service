@@ -1,7 +1,6 @@
 package com.example.demo;
 
 import java.io.Serializable;
-import org.apache.hc.core5.http.config.Lookup;
 
 public record ChatMessage(
         String id,

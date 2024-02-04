@@ -22,35 +22,16 @@ repositories {
     mavenCentral()
 }
 
-configurations.all {
-    resolutionStrategy {
-        force 'com.fasterxml.jackson.core:jackson-databind:2.16.1'
-        force 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.16.1'
-        force 'com.fasterxml.jackson.core:jackson-core:2.16.1'
-        force 'com.fasterxml.jackson.core:jackson-annotations:2.16.1'
-        force 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.16.1'
-        force 'com.fasterxml.jackson.module:jackson-module-parameter-names:2.16.1'
-    }
-}
-
 dependencies {
+    implementation 'org.apache.avro:avro:1.11.1'
     implementation "io.github.stefanbratanov:jvm-openai:0.5.0"
     implementation 'org.springframework.boot:spring-boot-starter-pulsar'
     implementation 'org.springframework.pulsar:spring-pulsar'
 
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.1'
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.16.1'
-    implementation 'com.fasterxml.jackson.core:jackson-core:2.16.1'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.16.1'
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.16.1'
-    implementation 'com.fasterxml.jackson.module:jackson-module-parameter-names:2.16.1'
-
     implementation "org.springframework.boot:spring-boot-starter-web"
-    implementation 'org.apache.avro:avro:1.11.3'
-    implementation 'org.apache.avro:avro-tools:1.11.3'
 
     compileOnly 'org.projectlombok:lombok'
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    //developmentOnly 'org.springframework.boot:spring-boot-devtools'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -84,4 +65,3 @@ tasks.register('copyDependencies', Copy) {
     into "$buildDir/libs/dependencies"
     from configurations.runtimeClasspath
 }
-
